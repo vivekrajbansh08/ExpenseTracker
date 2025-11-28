@@ -1,0 +1,28 @@
+<div class="otp-container">
+  <div class="otp-card">
+    <h2 class="text-center mb-3">Verify your Email</h2>
+    <p class="text-center text-muted mb-4">
+      Enter the 6-digit OTP sent to your email.
+    </p>
+
+    <input
+      type="text"
+      maxlength="6"
+      class="form-control otp-input"
+      placeholder="Enter OTP"
+      [(ngModel)]="otp"
+    />
+
+    <button
+      (click)="verify()"
+      class="btn btn-primary btn-block verify-btn mt-3"
+    >
+      Verify OTP
+    </button>
+
+    <!-- <p class="resend text-center mt-3">
+      Didn’t receive the code?
+      <a (click)="resendOtp()" class="resend-link">Resend OTP</a>
+    </p> -->
+  </div>
+</div>
