@@ -11,9 +11,9 @@ export const sendVerificationEmail = async (email: string, otp: number) => {
 
     sgMail.setApiKey(apiKey);
 
-    console.log("📧 Sending OTP email to:", email);
-    console.log("🔑 API Key configured: true");
-    console.log("📤 From:", process.env.SENDER_EMAIL);
+    console.log(" Sending OTP email to:", email);
+    console.log(" API Key configured: true");
+    console.log(" Sending from:", process.env.SENDER_EMAIL);
 
     const msg = {
       to: email,
@@ -27,9 +27,9 @@ export const sendVerificationEmail = async (email: string, otp: number) => {
     };
 
     const response = await sgMail.send(msg);
-    console.log("✅ Email sent successfully! Response status:", response[0].statusCode);
+    console.log("Email sent successfully! Response status:", response[0].statusCode);
   } catch (error: any) {
-    console.error("❌ SendGrid error:", {
+    console.error(" SendGrid error:", {
       message: error.message,
       code: error.code,
       errors: error.response?.body?.errors,
