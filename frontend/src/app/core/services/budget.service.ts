@@ -1,13 +1,15 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
 import { Budget, BudgetProgress } from '../../shared/models/budget.model';
 
 @Injectable({
   providedIn: 'root',
 })
 export class BudgetService {
-  private readonly API_URL = 'http://localhost:3000/api/budgets';
+  //private readonly API_URL = 'http://localhost:3000/api/budgets';
+  private readonly API_URL = `${environment.apiUrl}/budgets`;
 
   constructor(private http: HttpClient) {}
 
