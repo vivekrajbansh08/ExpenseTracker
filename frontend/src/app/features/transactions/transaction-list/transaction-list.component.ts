@@ -672,16 +672,21 @@ import {
 
                 <div class="mb-3">
                   <label class="form-label">Category</label>
-                  <select
-                    class="form-select"
-                    [(ngModel)]="currentTransaction.category"
-                    name="category"
-                    required
-                  >
-                    <option *ngFor="let cat of availableCategories" [value]="cat">
-                      {{ cat }}
-                    </option>
-                  </select>
+                  <div class="input-group">
+                    <span class="input-group-text"><i class="fas fa-tag"></i></span>
+                    <input
+                      type="text"
+                      class="form-control"
+                      [(ngModel)]="currentTransaction.category"
+                      name="category"
+                      required
+                      list="categoryList"
+                      placeholder="Select or type category"
+                    />
+                    <datalist id="categoryList">
+                      <option *ngFor="let cat of availableCategories" [value]="cat"></option>
+                    </datalist>
+                  </div>
                 </div>
 
                 <div class="mb-3">
@@ -764,6 +769,11 @@ import {
         margin-bottom: 0.25rem;
         display: flex;
         align-items: center;
+        color: var(--text-primary);
+      }
+
+      .page-header .text-muted {
+        color: var(--text-secondary) !important;
       }
 
       /* Controls Bar */

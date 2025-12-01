@@ -1,7 +1,8 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
+import { DarkModeService } from '../../../core/services/dark-mode.service';
 import { User } from '../../models/user.model';
 
 @Component({
@@ -49,6 +50,16 @@ import { User } from '../../models/user.model';
         </a>
 
         <a
+          routerLink="/wallets"
+          routerLinkActive="active"
+          class="nav-item"
+          [title]="isCollapsed ? 'Wallets' : ''"
+        >
+          <i class="fas fa-wallet"></i>
+          <span *ngIf="!isCollapsed">Wallets</span>
+        </a>
+
+        <a
           routerLink="/transactions"
           routerLinkActive="active"
           class="nav-item"
@@ -68,7 +79,47 @@ import { User } from '../../models/user.model';
           <span *ngIf="!isCollapsed">Budget</span>
         </a>
 
+        <a
+          routerLink="/subscriptions"
+          routerLinkActive="active"
+          class="nav-item"
+          [title]="isCollapsed ? 'Subscriptions' : ''"
+        >
+          <i class="fas fa-calendar-check"></i>
+          <span *ngIf="!isCollapsed">Subscriptions</span>
+        </a>
+
+        <a
+          routerLink="/savings-goals"
+          routerLinkActive="active"
+          class="nav-item"
+          [title]="isCollapsed ? 'Savings Goals' : ''"
+        >
+          <i class="fas fa-bullseye"></i>
+          <span *ngIf="!isCollapsed">Goals</span>
+        </a>
+
+        <a
+          routerLink="/expense-sharing"
+          routerLinkActive="active"
+          class="nav-item"
+          [title]="isCollapsed ? 'Expense Sharing' : ''"
+        >
+          <i class="fas fa-users"></i>
+          <span *ngIf="!isCollapsed">Sharing</span>
+        </a>
+
         <div class="nav-divider" *ngIf="!isCollapsed"></div>
+
+        <a
+          href="#"
+          (click)="$event.preventDefault(); toggleDarkMode()"
+          class="nav-item"
+          [title]="isCollapsed ? (isDarkMode ? 'Light Mode' : 'Dark Mode') : ''"
+        >
+          <i class="fas" [class.fa-sun]="isDarkMode" [class.fa-moon]="!isDarkMode"></i>
+          <span *ngIf="!isCollapsed">{{ isDarkMode ? 'Light Mode' : 'Dark Mode' }}</span>
+        </a>
 
         <a
           href="#"
@@ -89,19 +140,36 @@ import { User } from '../../models/user.model';
   `,
   styles: [
     `
+      :host {
+        display: contents;
+      }
+
       .sidebar {
         position: fixed;
         top: 0;
         left: 0;
         height: 100vh;
         width: var(--sidebar-width);
-        background: var(--sidebar-bg);
+        background: var(--glass-bg-heavy);
+        backdrop-filter: var(--glass-blur-heavy);
+        -webkit-backdrop-filter: var(--glass-blur-heavy);
         color: white;
         display: flex;
         flex-direction: column;
         transition: width var(--transition-base);
         z-index: 1000;
-        box-shadow: var(--shadow-lg);
+        box-shadow: var(--shadow-xl);
+        border-right: 1px solid var(--glass-border);
+      }
+
+      /* Gradient overlay */
+      .sidebar::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: var(--sidebar-bg);
+        z-index: -1;
+        opacity: 0.9;
       }
 
       .sidebar.collapsed {
@@ -114,7 +182,9 @@ import { User } from '../../models/user.model';
         display: flex;
         align-items: center;
         justify-content: space-between;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
       }
 
       .logo {
@@ -135,8 +205,10 @@ import { User } from '../../models/user.model';
       }
 
       .toggle-btn {
-        background: rgba(255, 255, 255, 0.1);
-        border: none;
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
         color: white;
         width: 32px;
         height: 32px;
@@ -149,8 +221,9 @@ import { User } from '../../models/user.model';
       }
 
       .toggle-btn:hover {
-        background: rgba(255, 255, 255, 0.2);
+        background: rgba(255, 255, 255, 0.25);
         transform: scale(1.1);
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
       }
 
       /* User Info */
@@ -159,7 +232,10 @@ import { User } from '../../models/user.model';
         display: flex;
         align-items: center;
         gap: 1rem;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
       }
 
       .user-avatar {
@@ -167,11 +243,19 @@ import { User } from '../../models/user.model';
         height: 48px;
         border-radius: 50%;
         background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 2px solid rgba(255, 255, 255, 0.3);
         display: flex;
         align-items: center;
         justify-content: center;
         font-size: 1.25rem;
         flex-shrink: 0;
+        transition: all var(--transition-fast);
+      }
+
+      .user-avatar:hover {
+        box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
       }
 
       .user-details {
@@ -212,6 +296,7 @@ import { User } from '../../models/user.model';
         transition: all var(--transition-fast);
         position: relative;
         font-weight: 500;
+        border-left: 3px solid transparent;
       }
 
       .nav-item i {
@@ -225,29 +310,36 @@ import { User } from '../../models/user.model';
       }
 
       .nav-item:hover {
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.15);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: white;
+        border-left-color: rgba(255, 255, 255, 0.5);
       }
 
       .nav-item.active {
-        background: rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: white;
+        border-left-color: white;
       }
 
-      .nav-item.active::before {
+      .nav-item.active::after {
         content: '';
         position: absolute;
-        left: 0;
-        top: 0;
-        height: 100%;
+        right: 0;
+        top: 50%;
+        transform: translateY(-50%);
         width: 4px;
+        height: 70%;
         background: white;
-        border-radius: 0 4px 4px 0;
+        border-radius: 4px 0 0 4px;
       }
 
       .nav-divider {
         height: 1px;
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.15);
         margin: 1rem 1.5rem;
       }
 
@@ -256,8 +348,11 @@ import { User } from '../../models/user.model';
       }
 
       .nav-item.logout:hover {
-        background: rgba(245, 101, 101, 0.2);
+        background: rgba(245, 101, 101, 0.25);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
         color: white;
+        border-left-color: var(--danger-color);
       }
 
       /* Footer */
@@ -266,7 +361,10 @@ import { User } from '../../models/user.model';
         text-align: center;
         opacity: 0.6;
         font-size: 0.75rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
       }
 
       /* Collapsed State */
@@ -312,20 +410,34 @@ import { User } from '../../models/user.model';
   ],
 })
 export class SidebarComponent implements OnInit {
+  @Output() sidebarCollapsed = new EventEmitter<boolean>();
   currentUser: User | null = null;
   isCollapsed = false;
 
-  constructor(private authService: AuthService, private router: Router) {}
+  isDarkMode = false;
+
+  constructor(
+    private authService: AuthService,
+    private router: Router,
+    private darkModeService: DarkModeService
+  ) {}
 
   ngOnInit(): void {
     this.authService.currentUser$.subscribe((user) => {
       this.currentUser = user;
     });
+    this.darkModeService.isDarkMode$.subscribe((isDark: boolean) => {
+      this.isDarkMode = isDark;
+    });
   }
 
   toggleSidebar(): void {
     this.isCollapsed = !this.isCollapsed;
-    // You can emit an event here to update main content margin if needed
+    this.sidebarCollapsed.emit(this.isCollapsed);
+  }
+
+  toggleDarkMode(): void {
+    this.darkModeService.toggleDarkMode();
   }
 
   logout(event: Event): void {

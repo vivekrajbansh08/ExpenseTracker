@@ -325,6 +325,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TransactionService } from '../../core/services/transaction.service';
 import { BudgetService } from '../../core/services/budget.service';
+import { AnalyticsService } from '../../core/services/analytics.service';
 import { TransactionStats } from '../../shared/models/transaction.model';
 import { BudgetProgress } from '../../shared/models/budget.model';
 import { BaseChartDirective } from 'ng2-charts';
@@ -343,16 +344,30 @@ import { ChartConfiguration } from 'chart.js';
           <p class="text-muted">Overview of your financial status</p>
         </div>
 
-        <!-- Month/Year Selector -->
+        <!-- Time Range Selector -->
         <div class="date-selector">
-          <select class="form-select" [(ngModel)]="selectedMonth" (change)="loadData()">
-            <option *ngFor="let month of months; let i = index" [value]="i + 1">
-              {{ month }}
-            </option>
+          <select class="form-select" [(ngModel)]="timeRange" (change)="onTimeRangeChange()">
+            <option value="month">This Month</option>
+            <option value="week">This Week</option>
+            <option value="year">This Year</option>
+            <option value="custom">Custom Range</option>
           </select>
-          <select class="form-select" [(ngModel)]="selectedYear" (change)="loadData()">
-            <option *ngFor="let year of years" [value]="year">{{ year }}</option>
-          </select>
+          
+          <div *ngIf="timeRange === 'custom'" class="d-flex gap-2">
+            <input type="date" class="form-control" [(ngModel)]="customStartDate" (change)="loadData()">
+            <input type="date" class="form-control" [(ngModel)]="customEndDate" (change)="loadData()">
+          </div>
+
+          <div *ngIf="timeRange === 'month'" class="d-flex gap-2">
+            <select class="form-select" [(ngModel)]="selectedMonth" (change)="loadData()">
+              <option *ngFor="let month of months; let i = index" [value]="i + 1">
+                {{ month }}
+              </option>
+            </select>
+            <select class="form-select" [(ngModel)]="selectedYear" (change)="loadData()">
+              <option *ngFor="let year of years" [value]="year">{{ year }}</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -449,9 +464,9 @@ import { ChartConfiguration } from 'chart.js';
                     <div class="category-count">{{ category.count }} transactions</div>
                   </div>
                 </div>
-                <div class="category-amount">
-                  <div class="amount">₹{{ category.total | number : '1.0-0' }}</div>
-                  <div class="percentage">
+                <div class="category-stats">
+                  <div class="category-amount">₹{{ category.total | number : '1.0-0' }}</div>
+                  <div class="category-percentage">
                     {{ (category.total / totalExpense) * 100 | number : '1.0-0' }}%
                   </div>
                 </div>
@@ -559,11 +574,17 @@ import { ChartConfiguration } from 'chart.js';
         margin-bottom: 0.25rem;
         display: flex;
         align-items: center;
+        color: var(--text-primary);
+      }
+
+      .page-header .text-muted {
+        color: var(--text-secondary) !important;
       }
 
       .date-selector {
         display: flex;
         gap: 0.75rem;
+        align-items: center;
       }
 
       .date-selector .form-select {
@@ -583,12 +604,28 @@ import { ChartConfiguration } from 'chart.js';
         align-items: center;
         gap: 1.5rem;
         padding: 1.75rem;
-        border-radius: var(--radius-lg);
-        color: white;
-        box-shadow: var(--shadow-md);
+        border-radius: var(--radius-xl);
+        color: #747171;
+        background: var(--glass-bg-heavy);
+        backdrop-filter: var(--glass-blur);
+        -webkit-backdrop-filter: var(--glass-blur);
+        box-shadow: var(--shadow-lg);
         transition: all var(--transition-base);
         position: relative;
         overflow: hidden;
+        border: 1.5px solid var(--glass-border);
+      }
+
+      /* Animated neon border on hover */
+      .stat-card::after {
+        content: '';
+        position: absolute;
+        inset: -2px;
+        background: var(--gradient-neon);
+        border-radius: var(--radius-xl);
+        z-index: -1;
+        opacity: 0;
+        transition: opacity var(--transition-base);
       }
 
       .stat-card::before {
@@ -598,32 +635,53 @@ import { ChartConfiguration } from 'chart.js';
         right: -50%;
         width: 200%;
         height: 200%;
-        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.15) 0%, transparent 70%);
+        transition: all var(--transition-slow);
       }
 
       .stat-card:hover {
-        transform: translateY(-5px);
+        transform: translateY(-8px) scale(1.02);
         box-shadow: var(--shadow-xl);
       }
 
+      .stat-card:hover::after {
+        opacity: 0.5;
+      }
+
+      .stat-card:hover::before {
+        transform: scale(1.2) rotate(30deg);
+      }
+
       .stat-card.success {
-        background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+        background: linear-gradient(135deg, rgba(72, 187, 120, 0.3) 0%, rgba(56, 161, 105, 0.3) 100%);
+      }
+
+      .stat-card.success:hover {
+        box-shadow: var(--shadow-xl), var(--glow-success);
       }
 
       .stat-card.danger {
-        background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        background: linear-gradient(135deg, rgba(245, 101, 101, 0.3) 0%, rgba(229, 62, 62, 0.3) 100%);
+      }
+
+      .stat-card.danger:hover {
+        box-shadow: var(--shadow-xl), var(--glow-danger);
       }
 
       .stat-card.warning {
-        background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+        background: linear-gradient(135deg, rgba(237, 137, 54, 0.3) 0%, rgba(221, 107, 32, 0.3) 100%);
       }
 
       .stat-card.info {
-        background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+        background: linear-gradient(135deg, rgba(66, 153, 225, 0.3) 0%, rgba(49, 130, 206, 0.3) 100%);
       }
 
       .stat-card.primary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+      }
+
+      .stat-card.primary:hover {
+        box-shadow: var(--shadow-xl), var(--glow-primary);
       }
 
       .stat-icon {
@@ -682,21 +740,40 @@ import { ChartConfiguration } from 'chart.js';
         justify-content: center;
       }
 
-      /* Category List */
+      /* Category List - Two Column Grid */
       .category-list {
-        display: flex;
-        flex-direction: column;
-        gap: 1.25rem;
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+        max-height: 500px;
+        overflow-y: auto;
+        padding-right: 0.5rem;
+      }
+
+      /* Custom scrollbar for category list */
+      .category-list::-webkit-scrollbar {
+        width: 6px;
+      }
+
+      .category-list::-webkit-scrollbar-track {
+        background: var(--bg-secondary);
+        border-radius: 3px;
+      }
+
+      .category-list::-webkit-scrollbar-thumb {
+        background: var(--primary-color);
+        border-radius: 3px;
       }
 
       .category-item {
         display: flex;
         align-items: center;
-        justify-content: space-between;
+        gap: 1rem;
         padding: 1rem;
         background: var(--bg-color);
         border-radius: var(--radius-md);
         transition: all var(--transition-fast);
+        border: 1px solid var(--border-color);
       }
 
       .category-item:hover {
@@ -737,19 +814,28 @@ import { ChartConfiguration } from 'chart.js';
         color: var(--text-muted);
       }
 
-      .category-amount {
+      .category-stats {
+        flex: 1;
         text-align: right;
       }
 
-      .category-amount .amount {
-        font-size: 1.25rem;
+      .category-amount {
+        font-size: 1.125rem;
         font-weight: 700;
         color: var(--text-primary);
+        margin-bottom: 0.25rem;
       }
 
-      .category-amount .percentage {
+      .category-percentage {
         font-size: 0.875rem;
-        color: var(--text-muted);
+        color: var(--text-secondary);
+      }
+
+      /* Responsive Grid */
+      @media (max-width: 768px) {
+        .category-list {
+          grid-template-columns: 1fr;
+        }
       }
 
       /* Budget Grid */
@@ -761,10 +847,9 @@ import { ChartConfiguration } from 'chart.js';
 
       .budget-item {
         padding: 1.5rem;
-        background: var(--bg-color);
-        border-radius: var(--radius-md);
-        border: 2px solid var(--border-color);
-        transition: all var(--transition-fast);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        background: var(--surface-bg);
       }
 
       .budget-item:hover {
@@ -776,13 +861,11 @@ import { ChartConfiguration } from 'chart.js';
         display: flex;
         justify-content: space-between;
         align-items: flex-start;
-        margin-bottom: 0.5rem;
+        margin-bottom: 1rem;
       }
 
       .budget-category {
-        font-size: 1.125rem;
-        font-weight: 700;
-        color: var(--text-primary);
+        font-weight: 600;
         margin-bottom: 0.25rem;
       }
 
@@ -791,7 +874,6 @@ import { ChartConfiguration } from 'chart.js';
         justify-content: space-between;
         align-items: center;
         font-size: 0.875rem;
-        font-weight: 600;
       }
 
       /* Empty State */
@@ -846,6 +928,9 @@ import { ChartConfiguration } from 'chart.js';
 export class DashboardComponent implements OnInit {
   selectedMonth = new Date().getMonth() + 1;
   selectedYear = new Date().getFullYear();
+  timeRange = 'month';
+  customStartDate = '';
+  customEndDate = '';
   Math = Math;
 
   months = [
@@ -906,19 +991,31 @@ export class DashboardComponent implements OnInit {
 
   constructor(
     private transactionService: TransactionService,
-    private budgetService: BudgetService
+    private budgetService: BudgetService,
+    private analyticsService: AnalyticsService
   ) {}
 
   ngOnInit(): void {
     this.loadData();
   }
 
-  loadData(): void {
-    this.loadStatistics();
-    this.loadBudgetProgress();
+  onTimeRangeChange(): void {
+    if (this.timeRange !== 'custom') {
+      this.loadData();
+    }
   }
 
-  loadStatistics(): void {
+  loadData(): void {
+    if (this.timeRange === 'month') {
+      this.loadMonthlyStatistics();
+      this.loadBudgetProgress();
+    } else {
+      this.loadTimeframeStatistics();
+      this.budgetProgress = []; // Clear budget progress for non-monthly views
+    }
+  }
+
+  loadMonthlyStatistics(): void {
     this.transactionService.getStatistics(this.selectedMonth, this.selectedYear).subscribe({
       next: (response) => {
         const stats = response.data;
@@ -926,37 +1023,68 @@ export class DashboardComponent implements OnInit {
         this.totalIncome = stats.summary.find((s: any) => s._id === 'income')?.total || 0;
         this.totalExpense = stats.summary.find((s: any) => s._id === 'expense')?.total || 0;
         this.balance = this.totalIncome - this.totalExpense;
+        this.transactionCount = stats.categoryBreakdown.reduce((acc: number, curr: any) => acc + curr.count, 0);
 
         this.categoryBreakdown = stats.categoryBreakdown;
-        this.transactionCount = stats.categoryBreakdown.reduce(
-          (sum: number, cat: any) => sum + cat.count,
-          0
-        );
-
-        // Update pie chart
-        if (stats.categoryBreakdown.length > 0) {
-          this.pieChartData = {
-            labels: stats.categoryBreakdown.map((c: any) => c._id),
-            datasets: [
-              {
-                data: stats.categoryBreakdown.map((c: any) => c.total),
-                backgroundColor: [
-                  '#667eea',
-                  '#f093fb',
-                  '#4facfe',
-                  '#43e97b',
-                  '#fa709a',
-                  '#fee140',
-                  '#30cfd0',
-                  '#a8edea',
-                ],
-                borderWidth: 0,
-              },
-            ],
-          };
-        }
+        this.updateCharts();
       },
       error: (error) => console.error('Error loading statistics:', error),
+    });
+  }
+
+  loadTimeframeStatistics(): void {
+    let startDate: Date;
+    let endDate: Date;
+
+    if (this.timeRange === 'week') {
+      // Get start of 7 days ago in UTC
+      const now = new Date();
+      startDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 7, 0, 0, 0, 0));
+      // Get end of today in UTC
+      endDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
+    } else if (this.timeRange === 'year') {
+      // Get start of current year in UTC
+      const now = new Date();
+      startDate = new Date(Date.UTC(now.getUTCFullYear(), 0, 1, 0, 0, 0, 0));
+      // Get end of today in UTC
+      endDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 23, 59, 59, 999));
+    } else if (this.timeRange === 'custom') {
+      if (!this.customStartDate || !this.customEndDate) return;
+      // Parse custom dates and set to start/end of day in UTC
+      const start = new Date(this.customStartDate);
+      startDate = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate(), 0, 0, 0, 0));
+      const end = new Date(this.customEndDate);
+      endDate = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate(), 23, 59, 59, 999));
+    } else {
+      return;
+    }
+
+    console.log('Timeframe API Call:', {
+      timeRange: this.timeRange,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+      startDateLocal: startDate.toString(),
+      endDateLocal: endDate.toString()
+    });
+
+    this.analyticsService.getTimeframeAnalysis(startDate.toISOString(), endDate.toISOString()).subscribe({
+      next: (response) => {
+        const data = response.data;
+        this.totalIncome = data.summary.totalIncome;
+        this.totalExpense = data.summary.totalExpenses;
+        this.balance = data.summary.netBalance;
+        this.transactionCount = data.summary.transactionCount;
+        
+        // Map category breakdown to match the structure expected by the template
+        this.categoryBreakdown = data.categoryBreakdown.map((c: any) => ({
+          _id: c.category,
+          total: c.amount,
+          count: c.count || 0 // Count might not be available in this endpoint, or I need to check the response structure
+        }));
+
+        this.updateCharts();
+      },
+      error: (error) => console.error('Error loading timeframe stats:', error)
     });
   }
 
@@ -967,6 +1095,28 @@ export class DashboardComponent implements OnInit {
       },
       error: (error) => console.error('Error loading budget progress:', error),
     });
+  }
+
+  updateCharts(): void {
+    this.pieChartData = {
+      labels: this.categoryBreakdown.map((c: any) => c._id),
+      datasets: [
+        {
+          data: this.categoryBreakdown.map((c: any) => c.total),
+          backgroundColor: [
+            '#667eea',
+            '#f093fb',
+            '#4facfe',
+            '#43e97b',
+            '#fa709a',
+            '#fee140',
+            '#30cfd0',
+            '#a8edea',
+          ],
+          borderWidth: 0,
+        },
+      ],
+    };
   }
 
   getCategoryColor(index: number): string {
@@ -994,6 +1144,6 @@ export class DashboardComponent implements OnInit {
       Bills: 'fas fa-file-invoice-dollar',
       Other: 'fas fa-ellipsis-h',
     };
-    return icons[category] || 'fas fa-circle';
+    return icons[category] || 'fas fa-tag';
   }
 }

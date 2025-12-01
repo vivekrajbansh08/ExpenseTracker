@@ -132,3 +132,46 @@ export const login = async (req: Request, res: Response): Promise<void> => {
     res.status(500).json({ message: error.message });
   }
 };
+
+// Lookup user by email (for expense sharing)
+export const lookupUser = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { email } = req.query;
+
+    if (!email || typeof email !== 'string') {
+      res.status(400).json({
+        success: false,
+        message: 'Email parameter is required'
+      });
+      return;
+    }
+
+    const user = await User.findOne({ email: email.toLowerCase() }).select('_id name email');
+
+    if (user) {
+      res.status(200).json({
+        success: true,
+        data: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          exists: true
+        }
+      });
+    } else {
+      res.status(200).json({
+        success: true,
+        data: {
+          exists: false,
+          email: email.toLowerCase()
+        }
+      });
+    }
+  } catch (error: any) {
+    res.status(500).json({
+      success: false,
+      message: 'Failed to lookup user',
+      error: error.message
+    });
+  }
+};

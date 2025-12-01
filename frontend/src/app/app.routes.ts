@@ -34,6 +34,30 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'wallets',
+    loadComponent: () =>
+      import('./features/wallet/wallet.component').then((m) => m.WalletComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'subscriptions',
+    loadComponent: () =>
+      import('./features/subscription/subscription.component').then((m) => m.SubscriptionComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'savings-goals',
+    loadComponent: () =>
+      import('./features/savings-goal/savings-goal.component').then((m) => m.SavingsGoalComponent),
+    canActivate: [authGuard],
+  },
+  {
+    path: 'expense-sharing',
+    loadComponent: () =>
+      import('./features/expense-share/expense-share.component').then((m) => m.ExpenseShareComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'transactions',
     loadComponent: () =>
       import('./features/transactions/transaction-list/transaction-list.component').then(

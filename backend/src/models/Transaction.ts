@@ -29,19 +29,6 @@ const transactionSchema = new Schema({
   category: {
     type: String,
     required: [true, "Please provide a category"],
-    enum: [
-      "Food",
-      "Transport",
-      "Entertainment",
-      "Shopping",
-      "Healthcare",
-      "Education",
-      "Bills",
-      "Salary",
-      "Freelance",
-      "Investment",
-      "Other",
-    ],
   },
   description: {
     type: String,

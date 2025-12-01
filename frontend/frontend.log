@@ -1,0 +1,85 @@
+
+> frontend@0.0.0 start
+> ng serve
+
+❯ Building...
+✔ Building...
+Application bundle generation failed. [2.827 seconds] - 2025-11-29T19:20:24.888Z
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mTS2322: Type 'string' is not assignable to type 'Date'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/savings-goal/savings-goal.component.ts:150:4:
+[37m      150 │     [32mtargetDate[37m: new Date().toISOString().split('T')[0],
+          ╵     [32m~~~~~~~~~~[0m
+
+  The expected type comes from property 'targetDate' which is declared here on type 'Partial<SavingsGoal>'
+
+    src/app/core/services/savings-goal.service.ts:12:2:
+[37m      12 │   [32mtargetDate[37m: Date;
+         ╵   [32m~~~~~~~~~~[0m
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'currency' does not exist on type 'Subscription'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/subscription/subscription.component.ts:31:23:
+[37m      31 │                 {{ sub.[32mcurrency[37m }} {{ sub.amount | number : '1.2-2...
+         ╵                        [32m~~~~~~~~[0m
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'frequency' does not exist on type 'Subscription'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/subscription/subscription.component.ts:33:48:
+[37m      33 │ ...    <p class="text-muted mb-3">{{ sub.[32mfrequency[37m | titlecase }}</p>
+         ╵                                          [32m~~~~~~~~~[0m
+
+
+Watch mode enabled. Watching for file changes...
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Application bundle generation failed. [7.119 seconds] - 2025-11-29T19:21:46.467Z
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'currency' does not exist on type 'Subscription'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/subscription/subscription.component.ts:31:23:
+[37m      31 │                 {{ sub.[32mcurrency[37m }} {{ sub.amount | number : '1.2-2...
+         ╵                        [32m~~~~~~~~[0m
+
+
+[31m✘ [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'frequency' does not exist on type 'Subscription'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/subscription/subscription.component.ts:33:48:
+[37m      33 │ ...    <p class="text-muted mb-3">{{ sub.[32mfrequency[37m | titlecase }}</p>
+         ╵                                          [32m~~~~~~~~~[0m
+
+
+❯ Changes detected. Rebuilding...
+✔ Changes detected. Rebuilding...
+Initial chunk files | Names                      |  Raw size
+styles.css          | styles                     | 385.63 kB | 
+scripts.js          | scripts                    | 107.73 kB | 
+main.js             | main                       |  46.55 kB | 
+chunk-72Y6HTTI.js   | -                          |   2.84 kB | 
+chunk-QZ6V2BQW.js   | -                          |   1.21 kB | 
+
+                    | Initial total              | 543.95 kB
+
+Lazy chunk files    | Names                      |  Raw size
+chunk-RMWYAQAZ.js   | transaction-list-component |  74.83 kB | 
+chunk-WWBKBXX7.js   | dashboard-component        |  45.13 kB | 
+chunk-TSQBLKF2.js   | onboarding-component       |  37.97 kB | 
+chunk-7MLD4LJH.js   | budget-component           |  30.88 kB | 
+chunk-WEAA7AXB.js   | savings-goal-component     |  26.84 kB | 
+chunk-DC5I6CC6.js   | subscription-component     |  26.08 kB | 
+chunk-6ADUY3TJ.js   | wallet-component           |  25.30 kB | 
+chunk-73KEWVWQ.js   | expense-share-component    |  24.03 kB | 
+chunk-L3BZLBG4.js   | register-component         |  13.13 kB | 
+chunk-3AU237C2.js   | login-component            |  11.10 kB | 
+chunk-NHOFH4EQ.js   | -                          |   2.37 kB | 
+chunk-4MTT3PGO.js   | -                          |   1.97 kB | 
+chunk-C3HWPYYL.js   | -                          | 356 bytes | 
+
+Application bundle generation complete. [1.123 seconds] - 2025-11-29T19:21:56.086Z
+
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  ➜  Local:   http://localhost:4200/
+  ➜  press h + enter to show help
