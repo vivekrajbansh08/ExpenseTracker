@@ -8,13 +8,18 @@ export const exportToCSV = async (req: Request, res: Response) => {
   try {
     const { startDate, endDate } = req.query;
 
-    const query: any = { userId: req.user!._id };
+    const query: any = { user: req.userId };
 
     if (startDate && endDate) {
+      console.log('Export CSV Request:', { startDate, endDate });
+      const end = new Date(endDate as string);
+      end.setHours(23, 59, 59, 999);
+      
       query.date = {
         $gte: new Date(startDate as string),
-        $lte: new Date(endDate as string),
+        $lte: end,
       };
+      console.log('Export CSV Query:', JSON.stringify(query));
     }
 
     const transactions = await Transaction.find(query)
@@ -51,13 +56,18 @@ export const exportToPDF = async (req: Request, res: Response) => {
   try {
     const { startDate, endDate } = req.query;
 
-    const query: any = { userId: req.user!._id };
+    const query: any = { user: req.userId };
 
     if (startDate && endDate) {
+      console.log('Export PDF Request:', { startDate, endDate });
+      const end = new Date(endDate as string);
+      end.setHours(23, 59, 59, 999);
+
       query.date = {
         $gte: new Date(startDate as string),
-        $lte: new Date(endDate as string),
+        $lte: end,
       };
+      console.log('Export PDF Query:', JSON.stringify(query));
     }
 
     const transactions = await Transaction.find(query)

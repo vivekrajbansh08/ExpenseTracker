@@ -254,10 +254,29 @@
 //   allCategories = [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES];
 //   availableCategories: string[] = EXPENSE_CATEGORIES;
 
-//   constructor(private transactionService: TransactionService) {}
+//   constructor(
+//     private transactionService: TransactionService,
+//     private exportService: ExportService
+//   ) {}
 
 //   ngOnInit(): void {
 //     this.loadTransactions();
+//   }
+
+//   exportCSV(): void {
+//     this.exportService
+//       .exportToCSV(this.filters.startDate, this.filters.endDate)
+//       .subscribe((blob) => {
+//         this.exportService.downloadFile(blob, 'transactions.csv');
+//       });
+//   }
+
+//   exportPDF(): void {
+//     this.exportService
+//       .exportToPDF(this.filters.startDate, this.filters.endDate)
+//       .subscribe((blob) => {
+//         this.exportService.downloadFile(blob, 'transactions.pdf');
+//       });
 //   }
 
 //   loadTransactions(): void {
@@ -357,6 +376,7 @@ import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TransactionService } from '../../../core/services/transaction.service';
+import { ExportService } from '../../../core/services/export.service';
 import {
   Transaction,
   EXPENSE_CATEGORIES,
@@ -375,9 +395,24 @@ import {
           <h1><i class="fas fa-exchange-alt me-2"></i>Transactions</h1>
           <p class="text-muted">Manage your income and expenses</p>
         </div>
-        <button class="btn btn-primary" (click)="showAddModal()">
-          <i class="fas fa-plus me-2"></i>Add Transaction
-        </button>
+        <div class="d-flex gap-2">
+          <div class="dropdown">
+            <button class="btn btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+              <i class="fas fa-download me-2"></i>Export
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="javascript:void(0)" (click)="exportCSV()">
+                <i class="fas fa-file-csv me-2"></i>Export as CSV
+              </a></li>
+              <li><a class="dropdown-item" href="javascript:void(0)" (click)="exportPDF()">
+                <i class="fas fa-file-pdf me-2"></i>Export as PDF
+              </a></li>
+            </ul>
+          </div>
+          <button class="btn btn-primary" (click)="showAddModal()">
+            <i class="fas fa-plus me-2"></i>Add Transaction
+          </button>
+        </div>
       </div>
 
       <!-- View Toggle & Quick Stats -->
@@ -1266,7 +1301,45 @@ export class TransactionListComponent implements OnInit {
   weekDays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
   calendarDays: any[] = [];
 
-  constructor(private transactionService: TransactionService) {}
+  constructor(
+    private transactionService: TransactionService,
+    private exportService: ExportService
+  ) {}
+
+  exportCSV(): void {
+    const { startDate, endDate } = this.getExportDateRange();
+    this.exportService.exportToCSV(startDate, endDate).subscribe((blob) => {
+      this.exportService.downloadFile(blob, 'transactions.csv');
+    });
+  }
+
+  exportPDF(): void {
+    const { startDate, endDate } = this.getExportDateRange();
+    this.exportService.exportToPDF(startDate, endDate).subscribe((blob) => {
+      this.exportService.downloadFile(blob, 'transactions.pdf');
+    });
+  }
+
+  private getExportDateRange(): { startDate?: string; endDate?: string } {
+    if (this.viewMode === 'calendar') {
+      // In calendar view, export the currently visible month
+      const start = new Date(this.currentYear, this.currentMonth, 1);
+      const end = new Date(this.currentYear, this.currentMonth + 1, 0);
+      
+      // Adjust for local timezone to ensure correct date string
+      const offset = start.getTimezoneOffset();
+      const startDate = new Date(start.getTime() - (offset * 60 * 1000)).toISOString().split('T')[0];
+      const endDate = new Date(end.getTime() - (offset * 60 * 1000)).toISOString().split('T')[0];
+      
+      return { startDate, endDate };
+    } else {
+      // In list view, use the applied filters
+      return {
+        startDate: this.filters.startDate,
+        endDate: this.filters.endDate
+      };
+    }
+  }
 
   ngOnInit(): void {
     this.loadTransactions();
