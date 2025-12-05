@@ -233,7 +233,7 @@ export const settleSplit = async (req: Request, res: Response) => {
       const paidByUser: any = populatedShare?.paidBy;
       const settledUser: any = split.userId;
       
-      if (paidByUser && paidByUser._id.toString() !== (settledUser._id || settledUser).toString()) {
+      if (paidByUser && paidByUser._id.toString() !== (settledUser?._id || settledUser)?.toString()) {
         const creatorEmail = paidByUser.email;
         const creatorName = paidByUser.username || paidByUser.email;
         const settlerName = settledUser?.username || settledUser?.email || 'Someone';

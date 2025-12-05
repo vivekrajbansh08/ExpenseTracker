@@ -67,7 +67,7 @@ interface Participant {
                       <button 
                         class="btn btn-sm btn-outline-success" 
                         *ngIf="!split.paid"
-                        (click)="settleSplit(expense._id, split.userId._id || split.userId, split._id)">
+                        (click)="settleSplit(expense._id, split.userId?._id || split.userId, split._id)">
                         <i class="fas fa-check"></i> Settle
                       </button>
                     </div>
